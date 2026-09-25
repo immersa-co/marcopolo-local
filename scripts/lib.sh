@@ -5,9 +5,11 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 CONFIG_DIR="${ROOT_DIR}/config"
-DEPLOYMENT_CONFIG="${DEPLOYMENT_CONFIG:-${CONFIG_DIR}/deployment.env}"
+CUSTOMER_CONFIG="${CUSTOMER_CONFIG:-${CONFIG_DIR}/customer.env}"
+RELEASE_CONFIG="${RELEASE_CONFIG:-${CONFIG_DIR}/release.env}"
 SOPS_CONFIG_DIR="${SOPS_CONFIG_DIR:-${CONFIG_DIR}/sops}"
 readonly POC_NAMESPACE="marcopolo-local"
+readonly COLIMA_PROFILE="default"
 
 fail() {
     printf 'ERROR: %s\n' "$*" >&2
@@ -27,23 +29,22 @@ require_file() {
 }
 
 load_deployment_config() {
-    require_file "$DEPLOYMENT_CONFIG"
+    require_file "$CUSTOMER_CONFIG"
+    require_file "$RELEASE_CONFIG"
     # shellcheck disable=SC1090
-    source "$DEPLOYMENT_CONFIG"
-    : "${WEB_BASE_URL:?WEB_BASE_URL must be set in ${DEPLOYMENT_CONFIG}}"
-    : "${POC_TENANT:=wellsfargo-com}"
-    : "${MARCOPOLO_IMAGE:?MARCOPOLO_IMAGE must be set in ${DEPLOYMENT_CONFIG}}"
-    : "${MPROXY_IMAGE:?MPROXY_IMAGE must be set in ${DEPLOYMENT_CONFIG}}"
-    : "${EXECUTOR_IMAGE:?EXECUTOR_IMAGE must be set in ${DEPLOYMENT_CONFIG}}"
-    : "${MARCOPOLO_ARCHIVE_URL:?MARCOPOLO_ARCHIVE_URL must be set in ${DEPLOYMENT_CONFIG}}"
-    : "${MARCOPOLO_ARCHIVE_SHA256:?MARCOPOLO_ARCHIVE_SHA256 must be set in ${DEPLOYMENT_CONFIG}}"
-    : "${MPROXY_ARCHIVE_URL:?MPROXY_ARCHIVE_URL must be set in ${DEPLOYMENT_CONFIG}}"
-    : "${MPROXY_ARCHIVE_SHA256:?MPROXY_ARCHIVE_SHA256 must be set in ${DEPLOYMENT_CONFIG}}"
-    : "${EXECUTOR_ARCHIVE_URL:?EXECUTOR_ARCHIVE_URL must be set in ${DEPLOYMENT_CONFIG}}"
-    : "${EXECUTOR_ARCHIVE_SHA256:?EXECUTOR_ARCHIVE_SHA256 must be set in ${DEPLOYMENT_CONFIG}}"
-    : "${SOPS_PGP_FINGERPRINT:?SOPS_PGP_FINGERPRINT must be set in ${DEPLOYMENT_CONFIG}}"
-    : "${PGP_PRIVATE_KEY_FILE:?PGP_PRIVATE_KEY_FILE must be set in ${DEPLOYMENT_CONFIG}}"
-    : "${COLIMA_PROFILE:=default}"
+    source "$CUSTOMER_CONFIG"
+    # shellcheck disable=SC1090
+    source "$RELEASE_CONFIG"
+    : "${MARCOPOLO_IMAGE:?MARCOPOLO_IMAGE must be set in ${RELEASE_CONFIG}}"
+    : "${MPROXY_IMAGE:?MPROXY_IMAGE must be set in ${RELEASE_CONFIG}}"
+    : "${EXECUTOR_IMAGE:?EXECUTOR_IMAGE must be set in ${RELEASE_CONFIG}}"
+    : "${MARCOPOLO_ARCHIVE_URL:?MARCOPOLO_ARCHIVE_URL must be set in ${RELEASE_CONFIG}}"
+    : "${MARCOPOLO_ARCHIVE_SHA256:?MARCOPOLO_ARCHIVE_SHA256 must be set in ${RELEASE_CONFIG}}"
+    : "${MPROXY_ARCHIVE_URL:?MPROXY_ARCHIVE_URL must be set in ${RELEASE_CONFIG}}"
+    : "${MPROXY_ARCHIVE_SHA256:?MPROXY_ARCHIVE_SHA256 must be set in ${RELEASE_CONFIG}}"
+    : "${EXECUTOR_ARCHIVE_URL:?EXECUTOR_ARCHIVE_URL must be set in ${RELEASE_CONFIG}}"
+    : "${EXECUTOR_ARCHIVE_SHA256:?EXECUTOR_ARCHIVE_SHA256 must be set in ${RELEASE_CONFIG}}"
+    : "${PGP_PRIVATE_KEY_FILE:?PGP_PRIVATE_KEY_FILE must be set in ${CUSTOMER_CONFIG}}"
 }
 
 resolve_kubectl() {
@@ -113,8 +114,5 @@ replace_template_values() {
         -e "s|__MARCOPOLO_IMAGE__|${MARCOPOLO_IMAGE//&/\\&}|g" \
         -e "s|__MPROXY_IMAGE__|${MPROXY_IMAGE//&/\\&}|g" \
         -e "s|__EXECUTOR_IMAGE__|${EXECUTOR_IMAGE//&/\\&}|g" \
-        -e "s|__WEB_BASE_URL__|${WEB_BASE_URL//&/\\&}|g" \
-        -e "s|__POC_TENANT__|${POC_TENANT//&/\\&}|g" \
-        -e "s|__SOPS_PGP_FINGERPRINT__|${SOPS_PGP_FINGERPRINT//&/\\&}|g" \
         "$template"
 }

@@ -55,8 +55,6 @@ for asset_spec in \
     fi
 done
 
-[[ "$POC_TENANT" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]] || report_error "POC_TENANT must be a lowercase path-safe slug."
-[[ "$SOPS_PGP_FINGERPRINT" =~ ^[A-Fa-f0-9]{40}([A-Fa-f0-9]{24})?$ ]] || report_error "SOPS_PGP_FINGERPRINT must be a 40- or 64-character hexadecimal fingerprint."
 [[ -f "$PGP_PRIVATE_KEY_FILE" ]] || report_error "PGP_PRIVATE_KEY_FILE does not point to a readable private-key export."
 if [[ -f "$PGP_PRIVATE_KEY_FILE" ]]; then
     pgp_mode="$(stat -f '%Lp' "$PGP_PRIVATE_KEY_FILE" 2>/dev/null || true)"

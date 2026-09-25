@@ -12,8 +12,8 @@ code.
 ## Before installation
 
 The GitHub Release must provide arm64 archives for Marcopolo API, mproxy, and
-the Marcopolo user image. Fill the non-secret archive URLs and SHA-256 values in
-`config/deployment.env.template` before sharing the repository.
+the Marcopolo user image. Marcopolo maintains their exact URLs and SHA-256
+values in the tracked `config/release.env` file.
 
 Prashanth needs the POC private OpenPGP key and its passphrase through an
 approved secure channel. Neither belongs in Git.
@@ -24,7 +24,7 @@ If that requires a prolonged IT approval, use the GCP environment instead.
 ## Install
 
 ```bash
-cp config/deployment.env.template config/deployment.env
+cp config/customer.env.template config/customer.env
 # Set PGP_PRIVATE_KEY_FILE and PGP_PASSPHRASE_FILE to local owner-only files.
 
 ./scripts/bootstrap-kubernetes.sh

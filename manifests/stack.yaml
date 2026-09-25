@@ -97,7 +97,7 @@ spec:
               mkdir -p "$GNUPGHOME"
               chmod 700 "$GNUPGHOME"
               gpg --batch --import /run/marcopolo-pgp/key/private.asc
-              gpg --batch --list-secret-keys __SOPS_PGP_FINGERPRINT__
+              gpg --batch --list-secret-keys A3793925F10A42B5E04468F69496E56DF93AF4E6
           volumeMounts:
             - name: pgp-key
               mountPath: /run/marcopolo-pgp/key
@@ -112,9 +112,9 @@ spec:
             - name: GNUPGHOME
               value: /run/marcopolo-pgp/gnupg
             - name: POC_TENANT
-              value: __POC_TENANT__
+              value: wellsfargo-com
             - name: SOPS_PGP_FINGERPRINT
-              value: __SOPS_PGP_FINGERPRINT__
+              value: A3793925F10A42B5E04468F69496E56DF93AF4E6
           volumeMounts:
             - name: fscache
               mountPath: /fscache
@@ -150,7 +150,7 @@ spec:
             - name: HOME
               value: /home/admin
             - name: WEB_BASE_URL
-              value: __WEB_BASE_URL__
+              value: http://localhost:8000
             - name: K8S_SESSIONS_NAMESPACE
               value: __NAMESPACE__
             - name: K8S_SESSIONS_SERVICE_ACCOUNT
@@ -266,7 +266,7 @@ spec:
               mkdir -p "$GNUPGHOME"
               chmod 700 "$GNUPGHOME"
               gpg --batch --import /run/mproxy-pgp/key/private.asc
-              gpg --batch --list-secret-keys __SOPS_PGP_FINGERPRINT__
+              gpg --batch --list-secret-keys A3793925F10A42B5E04468F69496E56DF93AF4E6
           volumeMounts:
             - name: pgp-key
               mountPath: /run/mproxy-pgp/key
@@ -293,7 +293,7 @@ spec:
             - name: BYOC_SECRETS_DIR
               value: /run/mproxy-byoc
             - name: WEB_BASE_URL
-              value: __WEB_BASE_URL__
+              value: http://localhost:8000
             - name: K8S_SESSIONS_NAMESPACE
               value: __NAMESPACE__
             - name: ROUTING_POLICY_PATH
