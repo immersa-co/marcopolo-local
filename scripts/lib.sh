@@ -26,6 +26,19 @@ require_command() {
     command -v "$1" >/dev/null 2>&1 || fail "Missing required command: $1"
 }
 
+github_release_token() {
+    if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+        GITHUB_RELEASE_TOKEN="$GITHUB_TOKEN"
+        return
+    fi
+
+    if command -v gh >/dev/null 2>&1; then
+        GITHUB_RELEASE_TOKEN="$(gh auth token 2>/dev/null || true)"
+    fi
+
+    [[ -n "${GITHUB_RELEASE_TOKEN:-}" ]] || fail "GitHub authentication is unavailable. Authenticate outside this repository before running the scripts."
+}
+
 require_file() {
     [[ -f "$1" ]] || fail "Required file not found: $1"
 }
@@ -71,7 +84,7 @@ ensure_kubectl() {
 
     require_command curl
     require_command shasum
-    [[ -n "${GITHUB_TOKEN:-}" ]] || fail "Export GITHUB_TOKEN with read access to immersa-co/marcopolo-local before enabling Kubernetes."
+    github_release_token
 
     local tools_dir="${ROOT_DIR}/.tools"
     local kubectl_path="${tools_dir}/kubectl"
@@ -82,7 +95,7 @@ ensure_kubectl() {
     curl --fail --location --proto '=https' --tlsv1.2 \
         --header 'Accept: application/octet-stream' \
         --header 'X-GitHub-Api-Version: 2022-11-28' \
-        --header "Authorization: Bearer ${GITHUB_TOKEN}" \
+        --header "Authorization: Bearer ${GITHUB_RELEASE_TOKEN}" \
         --output "$temporary_path" \
         "$KUBECTL_RELEASE_URL"
     printf '%s  %s\n' "$KUBECTL_RELEASE_SHA256" "$temporary_path" | shasum -a 256 -c -

@@ -28,10 +28,10 @@ import_image() {
     local curl_args=(--fail --location --proto '=https' --tlsv1.2)
 
     if [[ "$url" == https://api.github.com/repos/immersa-co/marcopolo-local/releases/assets/[0-9]* ]]; then
-        [[ -n "${GITHUB_TOKEN:-}" ]] || fail "Export GITHUB_TOKEN with read access to immersa-co/marcopolo-local before deploying."
+        github_release_token
         curl_args+=(--header "Accept: application/octet-stream")
         curl_args+=(--header "X-GitHub-Api-Version: 2022-11-28")
-        curl_args+=(--header "Authorization: Bearer ${GITHUB_TOKEN}")
+        curl_args+=(--header "Authorization: Bearer ${GITHUB_RELEASE_TOKEN}")
     fi
 
     note "Downloading ${name} from GitHub Release..."

@@ -5,7 +5,7 @@ Apple Silicon deployment on Colima Kubernetes. Open Marcopolo at http://localhos
 ## Requirements
 
 - Colima and Docker CLI
-- GitHub access and a fine-grained token with Contents: Read for this repository
+- Access to this private repository
 - PGP private key and passphrase files, supplied separately
 
 ## Run
@@ -13,7 +13,6 @@ Apple Silicon deployment on Colima Kubernetes. Open Marcopolo at http://localhos
 ```bash
 git clone https://github.com/immersa-co/marcopolo-local.git
 cd marcopolo-local
-export GITHUB_TOKEN=<your-read-only-github-token>
 colima start --profile default
 ./scripts/bootstrap-kubernetes.sh
 cp config/customer.env.template config/customer.env
