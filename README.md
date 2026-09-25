@@ -39,3 +39,5 @@ PGP_PASSPHRASE_FILE=$HOME/.marcopolo-poc/passphrase.txt
 ```
 
 Keep the key, passphrase, and token outside the repository. Do not edit `config/release.env`.
+
+Next, open http://localhost:8000/app and sign in with your company email.
