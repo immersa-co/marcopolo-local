@@ -2,3 +2,4 @@
 .DS_Store
 /config/customer.env
 /config/keys/
+/.tools/

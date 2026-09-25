@@ -142,6 +142,8 @@ spec:
               value: marcopolo-session
             - name: K8S_SESSIONS_PVC_NAME
               value: fscache
+            - name: K8S_SESSION_PGP_SECRET_NAME
+              value: marcopolo-poc-pgp
             - name: K8S_SESSION_DUCKDB_STORAGE_CLASS_NAME
               value: local-path
             - name: K8S_SESSION_DUCKDB_STORAGE_SIZE

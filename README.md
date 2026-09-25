@@ -13,6 +13,9 @@ Apple Silicon deployment on Colima Kubernetes. Open Marcopolo at http://localhos
 ```bash
 git clone https://github.com/immersa-co/marcopolo-local.git
 cd marcopolo-local
+export GITHUB_TOKEN=<your-read-only-github-token>
+colima start --profile default
+./scripts/bootstrap-kubernetes.sh
 cp config/customer.env.template config/customer.env
 mkdir -p ~/.marcopolo-poc
 chmod 700 ~/.marcopolo-poc
@@ -22,7 +25,6 @@ Save the supplied private key as `~/.marcopolo-poc/private.asc` and its passphra
 
 ```bash
 chmod 600 ~/.marcopolo-poc/private.asc ~/.marcopolo-poc/passphrase.txt
-export GITHUB_TOKEN=<your-read-only-github-token>
 ```
 
 Set `config/customer.env`:
@@ -33,8 +35,6 @@ PGP_PASSPHRASE_FILE=$HOME/.marcopolo-poc/passphrase.txt
 ```
 
 ```bash
-colima start --profile default
-./scripts/bootstrap-kubernetes.sh
 ./scripts/deploy.sh
 ./scripts/port-forward.sh
 ```

@@ -10,6 +10,8 @@ RELEASE_CONFIG="${RELEASE_CONFIG:-${CONFIG_DIR}/release.env}"
 SOPS_CONFIG_DIR="${SOPS_CONFIG_DIR:-${CONFIG_DIR}/sops}"
 readonly POC_NAMESPACE="marcopolo-local"
 readonly COLIMA_PROFILE="default"
+readonly KUBECTL_RELEASE_URL="https://api.github.com/repos/immersa-co/marcopolo-local/releases/assets/588947870"
+readonly KUBECTL_RELEASE_SHA256="cf699c56340dc775230fde4ef84237d27563ea6ef52164c7d078072b586c3918"
 
 fail() {
     printf 'ERROR: %s\n' "$*" >&2
@@ -56,6 +58,39 @@ resolve_kubectl() {
     fi
 }
 
+ensure_kubectl() {
+    if [[ -n "${KUBECTL:-}" ]]; then
+        require_command "$KUBECTL"
+        export PATH="$(dirname "$KUBECTL"):${PATH}"
+        return
+    fi
+
+    if command -v kubectl >/dev/null 2>&1; then
+        return
+    fi
+
+    require_command curl
+    require_command shasum
+    [[ -n "${GITHUB_TOKEN:-}" ]] || fail "Export GITHUB_TOKEN with read access to immersa-co/marcopolo-local before enabling Kubernetes."
+
+    local tools_dir="${ROOT_DIR}/.tools"
+    local kubectl_path="${tools_dir}/kubectl"
+    local temporary_path="${tools_dir}/kubectl.download"
+    mkdir -p "$tools_dir"
+
+    note "Downloading kubectl from the GitHub Release..."
+    curl --fail --location --proto '=https' --tlsv1.2 \
+        --header 'Accept: application/octet-stream' \
+        --header 'X-GitHub-Api-Version: 2022-11-28' \
+        --header "Authorization: Bearer ${GITHUB_TOKEN}" \
+        --output "$temporary_path" \
+        "$KUBECTL_RELEASE_URL"
+    printf '%s  %s\n' "$KUBECTL_RELEASE_SHA256" "$temporary_path" | shasum -a 256 -c -
+    chmod 755 "$temporary_path"
+    mv "$temporary_path" "$kubectl_path"
+    export PATH="${tools_dir}:${PATH}"
+}
+
 kube() {
     if [[ -n "$KUBECTL" ]]; then
         "$KUBECTL" "$@"
@@ -85,7 +120,7 @@ require_release_asset() {
     local name="$1"
     local url="$2"
     local checksum="$3"
-    [[ "$url" == https://github.com/*/releases/download/* ]] || {
+    [[ "$url" == https://api.github.com/repos/immersa-co/marcopolo-local/releases/assets/[0-9]* ]] || {
         printf 'FAIL: %s must be a GitHub Release download URL\n' "$name" >&2
         return 1
     }

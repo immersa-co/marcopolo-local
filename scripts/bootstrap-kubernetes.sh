@@ -2,8 +2,8 @@
 
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
 
-load_deployment_config
 require_command colima
+ensure_kubectl
 resolve_kubectl
 
 if ! colima status --profile "$COLIMA_PROFILE" >/dev/null 2>&1; then
