@@ -98,6 +98,14 @@ spec:
               chmod 700 "$GNUPGHOME"
               gpg --batch --import /run/marcopolo-pgp/key/private.asc
               gpg --batch --list-secret-keys A3793925F10A42B5E04468F69496E56DF93AF4E6
+              chown -R 1001:1001 "$GNUPGHOME"
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["CHOWN"]
           volumeMounts:
             - name: pgp-key
               mountPath: /run/marcopolo-pgp/key
@@ -251,6 +259,14 @@ spec:
               chmod 700 "$GNUPGHOME"
               gpg --batch --import /run/mproxy-pgp/key/private.asc
               gpg --batch --list-secret-keys A3793925F10A42B5E04468F69496E56DF93AF4E6
+              chown -R 1001:1001 "$GNUPGHOME"
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["CHOWN"]
           volumeMounts:
             - name: pgp-key
               mountPath: /run/mproxy-pgp/key

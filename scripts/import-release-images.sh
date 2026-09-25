@@ -7,10 +7,13 @@ require_command curl
 require_command shasum
 require_command docker
 require_command colima
+resolve_kubectl
 
 if ! colima status --profile "$COLIMA_PROFILE" >/dev/null 2>&1; then
     fail "Colima profile '${COLIMA_PROFILE}' is not running."
 fi
+
+kubernetes_runtime="$(kube get nodes -o jsonpath='{.items[0].status.nodeInfo.containerRuntimeVersion}')"
 
 temporary_dir="$(mktemp -d "${TMPDIR:-/tmp}/marcopolo-poc-images.XXXXXX")"
 cleanup() {
@@ -26,6 +29,11 @@ import_image() {
     local archive_path="${temporary_dir}/${name}.tar.gz"
     local load_output source_image
     local curl_args=(--fail --location --proto '=https' --tlsv1.2)
+
+    if [[ "$kubernetes_runtime" == docker://* ]] && docker image inspect "$target_image" >/dev/null 2>&1; then
+        note "${target_image} is already available to Docker-backed K3s."
+        return
+    fi
 
     if [[ "$url" == https://api.github.com/repos/immersa-co/marcopolo-local/releases/assets/[0-9]* ]]; then
         github_release_token
@@ -46,6 +54,10 @@ import_image() {
     [[ -n "$source_image" ]] || fail "${name} archive did not provide an image name or ID."
 
     docker image tag "$source_image" "$target_image"
+    if [[ "$kubernetes_runtime" == docker://* ]]; then
+        note "Docker-backed K3s will use ${target_image}."
+        return
+    fi
     note "Importing ${target_image} into K3s..."
     docker image save "$target_image" | colima ssh --profile "$COLIMA_PROFILE" -- sudo k3s ctr images import -
 }
