@@ -1,0 +1,353 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: marcopolo-server
+  namespace: __NAMESPACE__
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: marcopolo-session
+  namespace: __NAMESPACE__
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: marcopolo-pod-manager
+  namespace: __NAMESPACE__
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "pods/exec"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["get", "list", "create"]
+  - apiGroups: [""]
+    resources: ["events", "configmaps"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: marcopolo-pod-manager
+  namespace: __NAMESPACE__
+subjects:
+  - kind: ServiceAccount
+    name: marcopolo-server
+    namespace: __NAMESPACE__
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: marcopolo-pod-manager
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: fscache
+  namespace: __NAMESPACE__
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: marcopolo-routing
+  namespace: __NAMESPACE__
+data:
+  routing.yaml: |
+    version: 1
+    default_backend: marcopolo
+    backends:
+      marcopolo:
+        url: http://marcopolo:8000
+    routes: []
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: marcopolo
+  namespace: __NAMESPACE__
+  labels:
+    app: marcopolo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: marcopolo
+  template:
+    metadata:
+      labels:
+        app: marcopolo
+    spec:
+      serviceAccountName: marcopolo-server
+      securityContext:
+        fsGroup: 1001
+      initContainers:
+        - name: import-pgp-key
+          image: __MARCOPOLO_IMAGE__
+          imagePullPolicy: Never
+          command: ["bash", "-ec"]
+          args:
+            - |
+              export GNUPGHOME=/run/marcopolo-pgp/gnupg
+              mkdir -p "$GNUPGHOME"
+              chmod 700 "$GNUPGHOME"
+              gpg --batch --import /run/marcopolo-pgp/key/private.asc
+              gpg --batch --list-secret-keys __SOPS_PGP_FINGERPRINT__
+          volumeMounts:
+            - name: pgp-key
+              mountPath: /run/marcopolo-pgp/key
+              readOnly: true
+            - name: pgp-home
+              mountPath: /run/marcopolo-pgp/gnupg
+        - name: seed-poc-tenant
+          image: __MARCOPOLO_IMAGE__
+          imagePullPolicy: Never
+          command: ["python", "/run/marcopolo-pgp/seed/seed_tenant.py"]
+          env:
+            - name: GNUPGHOME
+              value: /run/marcopolo-pgp/gnupg
+            - name: POC_TENANT
+              value: __POC_TENANT__
+            - name: SOPS_PGP_FINGERPRINT
+              value: __SOPS_PGP_FINGERPRINT__
+          volumeMounts:
+            - name: fscache
+              mountPath: /fscache
+            - name: pgp-home
+              mountPath: /run/marcopolo-pgp/gnupg
+            - name: tenant-seed
+              mountPath: /run/marcopolo-pgp/seed
+              readOnly: true
+      containers:
+        - name: marcopolo
+          image: __MARCOPOLO_IMAGE__
+          imagePullPolicy: Never
+          command: ["uvicorn"]
+          args:
+            - marcopolo.server:create_app
+            - --factory
+            - --host=0.0.0.0
+            - --port=8000
+            - --timeout-graceful-shutdown=0
+            - --no-access-log
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: GNUPGHOME
+              value: /run/marcopolo-pgp/gnupg
+            - name: SOPS_GPG_EXEC
+              value: /run/marcopolo-tools/sops-gpg
+            - name: SOPS_GPG_PASSPHRASE_FILE
+              value: /run/marcopolo-pgp/key/passphrase
+            - name: BYOC_SECRETS_DIR
+              value: /run/marcopolo-byoc
+            - name: HOME
+              value: /home/admin
+            - name: WEB_BASE_URL
+              value: __WEB_BASE_URL__
+            - name: K8S_SESSIONS_NAMESPACE
+              value: __NAMESPACE__
+            - name: K8S_SESSIONS_SERVICE_ACCOUNT
+              value: marcopolo-session
+            - name: K8S_SESSIONS_PVC_NAME
+              value: fscache
+            - name: K8S_SESSION_DUCKDB_STORAGE_CLASS_NAME
+              value: local-path
+            - name: K8S_SESSION_DUCKDB_STORAGE_SIZE
+              value: 2Gi
+            - name: K8S_SESSIONS_NODE_SELECTOR
+              value: '{"kubernetes.io/os":"linux"}'
+            - name: K8S_EXECUTOR_IMAGE
+              value: __EXECUTOR_IMAGE__
+            - name: K8S_EXECUTOR_IMAGE_PULL_POLICY
+              value: IfNotPresent
+            - name: ROUTING_POLICY_PATH
+              value: /var/run/marcopolo-routing/routing.yaml
+            - name: ROUTING_BACKEND_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+          volumeMounts:
+            - name: fscache
+              mountPath: /fscache
+            - name: routing
+              mountPath: /var/run/marcopolo-routing
+              readOnly: true
+            - name: pgp-key
+              mountPath: /run/marcopolo-pgp/key
+              readOnly: true
+            - name: pgp-home
+              mountPath: /run/marcopolo-pgp/gnupg
+            - name: byoc-secrets
+              mountPath: /run/marcopolo-byoc
+              readOnly: true
+            - name: sops-tools
+              mountPath: /run/marcopolo-tools
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 3
+            timeoutSeconds: 5
+            failureThreshold: 20
+      volumes:
+        - name: fscache
+          persistentVolumeClaim:
+            claimName: fscache
+        - name: routing
+          configMap:
+            name: marcopolo-routing
+        - name: pgp-key
+          secret:
+            secretName: marcopolo-poc-pgp
+            defaultMode: 0440
+        - name: pgp-home
+          emptyDir: {}
+        - name: tenant-seed
+          configMap:
+            name: marcopolo-poc-tenant-seed
+        - name: byoc-secrets
+          configMap:
+            name: marcopolo-poc-sops
+        - name: sops-tools
+          configMap:
+            name: marcopolo-poc-sops-tools
+            defaultMode: 0555
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: marcopolo
+  namespace: __NAMESPACE__
+spec:
+  selector:
+    app: marcopolo
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mproxy
+  namespace: __NAMESPACE__
+  labels:
+    app: mproxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mproxy
+  template:
+    metadata:
+      labels:
+        app: mproxy
+    spec:
+      serviceAccountName: marcopolo-server
+      securityContext:
+        fsGroup: 1001
+      initContainers:
+        - name: import-pgp-key
+          image: __MPROXY_IMAGE__
+          imagePullPolicy: Never
+          command: ["bash", "-ec"]
+          args:
+            - |
+              export GNUPGHOME=/run/mproxy-pgp/gnupg
+              mkdir -p "$GNUPGHOME"
+              chmod 700 "$GNUPGHOME"
+              gpg --batch --import /run/mproxy-pgp/key/private.asc
+              gpg --batch --list-secret-keys __SOPS_PGP_FINGERPRINT__
+          volumeMounts:
+            - name: pgp-key
+              mountPath: /run/mproxy-pgp/key
+              readOnly: true
+            - name: pgp-home
+              mountPath: /run/mproxy-pgp/gnupg
+      containers:
+        - name: mproxy
+          image: __MPROXY_IMAGE__
+          imagePullPolicy: Never
+          command: ["python", "-m", "mproxy.server", "--host", "0.0.0.0"]
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: HOME
+              value: /home/mproxy
+            - name: GNUPGHOME
+              value: /run/mproxy-pgp/gnupg
+            - name: SOPS_GPG_EXEC
+              value: /run/marcopolo-tools/sops-gpg
+            - name: SOPS_GPG_PASSPHRASE_FILE
+              value: /run/mproxy-pgp/key/passphrase
+            - name: BYOC_SECRETS_DIR
+              value: /run/mproxy-byoc
+            - name: WEB_BASE_URL
+              value: __WEB_BASE_URL__
+            - name: K8S_SESSIONS_NAMESPACE
+              value: __NAMESPACE__
+            - name: ROUTING_POLICY_PATH
+              value: /var/run/marcopolo-routing/routing.yaml
+          volumeMounts:
+            - name: routing
+              mountPath: /var/run/marcopolo-routing
+              readOnly: true
+            - name: pgp-key
+              mountPath: /run/mproxy-pgp/key
+              readOnly: true
+            - name: pgp-home
+              mountPath: /run/mproxy-pgp/gnupg
+            - name: byoc-secrets
+              mountPath: /run/mproxy-byoc
+              readOnly: true
+            - name: sops-tools
+              mountPath: /run/marcopolo-tools
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 3
+            timeoutSeconds: 5
+            failureThreshold: 20
+      volumes:
+        - name: routing
+          configMap:
+            name: marcopolo-routing
+        - name: pgp-key
+          secret:
+            secretName: marcopolo-poc-pgp
+            defaultMode: 0440
+        - name: pgp-home
+          emptyDir: {}
+        - name: byoc-secrets
+          configMap:
+            name: marcopolo-poc-sops
+        - name: sops-tools
+          configMap:
+            name: marcopolo-poc-sops-tools
+            defaultMode: 0555
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mproxy
+  namespace: __NAMESPACE__
+spec:
+  selector:
+    app: mproxy
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http

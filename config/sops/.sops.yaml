@@ -1,0 +1,3 @@
+creation_rules:
+  - path_regex: '^(mcp|mproxy)\.secrets\.yaml$'
+    pgp: A3793925F10A42B5E04468F69496E56DF93AF4E6

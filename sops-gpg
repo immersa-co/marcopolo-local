@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [[ -n "${SOPS_GPG_PASSPHRASE_FILE:-}" ]]; then
+    exec gpg --batch --pinentry-mode loopback --passphrase-file "$SOPS_GPG_PASSPHRASE_FILE" "$@"
+fi
+
+exec gpg "$@"

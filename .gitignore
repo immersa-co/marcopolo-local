@@ -1,0 +1,5 @@
+# Local deployment values and OpenPGP material must never be committed.
+.DS_Store
+/config/deployment.env
+/config/runtime.env
+/config/keys/
