@@ -1,27 +1,39 @@
 # Marcopolo local POC
 
-Apple Silicon deployment on Colima Kubernetes. Images come from this repository's GitHub Release. Open Marcopolo at http://localhost:8000.
+Apple Silicon deployment on Colima Kubernetes. Open Marcopolo at http://localhost:8000.
 
 ## Requirements
 
 - Colima and Docker CLI
-- GitHub Release and data-source access
-- PGP private key and passphrase files
+- GitHub access and a fine-grained token with Contents: Read for this repository
+- PGP private key and passphrase files, supplied separately
 
 ## Run
 
 ```bash
+git clone https://github.com/immersa-co/marcopolo-local.git
+cd marcopolo-local
 cp config/customer.env.template config/customer.env
+mkdir -p ~/.marcopolo-poc
+chmod 700 ~/.marcopolo-poc
 ```
 
-Set the two local file paths in `config/customer.env`:
+Save the supplied private key as `~/.marcopolo-poc/private.asc` and its passphrase as `~/.marcopolo-poc/passphrase.txt`, then run:
+
+```bash
+chmod 600 ~/.marcopolo-poc/private.asc ~/.marcopolo-poc/passphrase.txt
+export GITHUB_TOKEN=<your-read-only-github-token>
+```
+
+Set `config/customer.env`:
 
 ```dotenv
-PGP_PRIVATE_KEY_FILE=/path/to/private.asc
-PGP_PASSPHRASE_FILE=/path/to/passphrase.txt
+PGP_PRIVATE_KEY_FILE=$HOME/.marcopolo-poc/private.asc
+PGP_PASSPHRASE_FILE=$HOME/.marcopolo-poc/passphrase.txt
 ```
 
 ```bash
+colima start --profile default
 ./scripts/bootstrap-kubernetes.sh
 ./scripts/deploy.sh
 ./scripts/port-forward.sh
@@ -37,4 +49,4 @@ PGP_PASSPHRASE_FILE=/path/to/passphrase.txt
 ./scripts/teardown.sh
 ```
 
-Keep the private key and passphrase outside the repository. Do not edit `config/release.env`.
+Keep the key, passphrase, and token outside the repository. Do not edit `config/release.env`.

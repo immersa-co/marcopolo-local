@@ -25,9 +25,15 @@ import_image() {
     local target_image="$4"
     local archive_path="${temporary_dir}/${name}.tar.gz"
     local load_output source_image
+    local curl_args=(--fail --location --proto '=https' --tlsv1.2)
+
+    if [[ "$url" == https://github.com/immersa-co/marcopolo-local/releases/download/* ]]; then
+        [[ -n "${GITHUB_TOKEN:-}" ]] || fail "Export GITHUB_TOKEN with read access to immersa-co/marcopolo-local before deploying."
+        curl_args+=(--header "Authorization: Bearer ${GITHUB_TOKEN}")
+    fi
 
     note "Downloading ${name} from GitHub Release..."
-    curl --fail --location --proto '=https' --tlsv1.2 --output "$archive_path" "$url"
+    curl "${curl_args[@]}" --output "$archive_path" "$url"
     printf '%s  %s\n' "$checksum" "$archive_path" | shasum -a 256 -c -
 
     load_output="$(docker image load --input "$archive_path")"
