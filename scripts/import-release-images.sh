@@ -26,7 +26,7 @@ import_image() {
     local url="$2"
     local checksum="$3"
     local target_image="$4"
-    local archive_path="${temporary_dir}/${name}.tar.gz"
+    local archive_path="${temporary_dir}/${name}.tar"
     local load_output source_image
     local curl_args=(--fail --location --proto '=https' --tlsv1.2)
 
