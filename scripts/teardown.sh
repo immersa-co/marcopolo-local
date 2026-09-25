@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# Namespace deletion removes the POC's Kubernetes Secrets, applications, and
-# local-path PVC data. It does not alter Colima itself or other Docker/K3s work.
-
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
 
 load_deployment_config

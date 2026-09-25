@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# Deploys only the Marcopolo POC namespace. Release images are imported into
-# K3s locally and state is kept in K3s's local-path volume inside Colima.
-
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
 
 load_deployment_config
@@ -11,7 +8,6 @@ resolve_kubectl
 "${SCRIPT_DIR}/import-release-images.sh"
 
 pgp_secret="marcopolo-poc-pgp"
-tenant_seed_configmap="marcopolo-poc-tenant-seed"
 sops_configmap="marcopolo-poc-sops"
 sops_tools_configmap="marcopolo-poc-sops-tools"
 
@@ -27,10 +23,6 @@ else
     pgp_secret_args+=(--from-literal=passphrase=)
 fi
 kube create secret generic "$pgp_secret" "${pgp_secret_args[@]}" --dry-run=client -o yaml | kube apply -f -
-kube create configmap "$tenant_seed_configmap" \
-    --namespace "$POC_NAMESPACE" \
-    --from-file=seed_tenant.py="${ROOT_DIR}/manifests/seed_tenant.py" \
-    --dry-run=client -o yaml | kube apply -f -
 kube create configmap "$sops_configmap" \
     --namespace "$POC_NAMESPACE" \
     --from-file=.sops.yaml="${SOPS_CONFIG_DIR}/.sops.yaml" \

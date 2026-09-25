@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 
-# Tests name resolution and a TCP handshake from the same executor image and
-# Kubernetes network used for customer workspaces. It never receives a
-# data-source credential and creates no persistent resources.
-
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
 
 load_deployment_config

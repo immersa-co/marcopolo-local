@@ -104,25 +104,6 @@ spec:
               readOnly: true
             - name: pgp-home
               mountPath: /run/marcopolo-pgp/gnupg
-        - name: seed-poc-tenant
-          image: __MARCOPOLO_IMAGE__
-          imagePullPolicy: Never
-          command: ["python", "/run/marcopolo-pgp/seed/seed_tenant.py"]
-          env:
-            - name: GNUPGHOME
-              value: /run/marcopolo-pgp/gnupg
-            - name: POC_TENANT
-              value: wellsfargo-com
-            - name: SOPS_PGP_FINGERPRINT
-              value: A3793925F10A42B5E04468F69496E56DF93AF4E6
-          volumeMounts:
-            - name: fscache
-              mountPath: /fscache
-            - name: pgp-home
-              mountPath: /run/marcopolo-pgp/gnupg
-            - name: tenant-seed
-              mountPath: /run/marcopolo-pgp/seed
-              readOnly: true
       containers:
         - name: marcopolo
           image: __MARCOPOLO_IMAGE__
@@ -145,6 +126,10 @@ spec:
               value: /run/marcopolo-tools/sops-gpg
             - name: SOPS_GPG_PASSPHRASE_FILE
               value: /run/marcopolo-pgp/key/passphrase
+            - name: TENANT_PROVISIONING_BACKEND
+              value: pgp
+            - name: SOPS_PGP_RECIPIENT
+              value: A3793925F10A42B5E04468F69496E56DF93AF4E6
             - name: BYOC_SECRETS_DIR
               value: /run/marcopolo-byoc
             - name: HOME
@@ -211,9 +196,6 @@ spec:
             defaultMode: 0440
         - name: pgp-home
           emptyDir: {}
-        - name: tenant-seed
-          configMap:
-            name: marcopolo-poc-tenant-seed
         - name: byoc-secrets
           configMap:
             name: marcopolo-poc-sops

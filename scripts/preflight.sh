@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# Performs local checks only. It does not pull images, create Kubernetes
-# objects, modify Colima, or transmit configuration values.
-
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
 
 load_deployment_config

@@ -31,9 +31,7 @@ require_file() {
 load_deployment_config() {
     require_file "$CUSTOMER_CONFIG"
     require_file "$RELEASE_CONFIG"
-    # shellcheck disable=SC1090
     source "$CUSTOMER_CONFIG"
-    # shellcheck disable=SC1090
     source "$RELEASE_CONFIG"
     : "${MARCOPOLO_IMAGE:?MARCOPOLO_IMAGE must be set in ${RELEASE_CONFIG}}"
     : "${MPROXY_IMAGE:?MPROXY_IMAGE must be set in ${RELEASE_CONFIG}}"

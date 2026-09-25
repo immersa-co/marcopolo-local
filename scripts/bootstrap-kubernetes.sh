@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# Enables the K3s cluster inside the existing Colima profile. It does not stop,
-# recreate, or resize a running VM, so existing Docker workloads are left alone.
-
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
 
 load_deployment_config

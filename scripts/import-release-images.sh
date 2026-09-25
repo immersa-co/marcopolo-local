@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# Imports verified GitHub Release archives into K3s's image store. Kubernetes
-# uses only these local names and therefore cannot make a registry pull.
-
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
 
 load_deployment_config

@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# Keeps the customer-facing endpoint on localhost. Ctrl-C stops only this
-# forward; the Kubernetes workload remains running.
-
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
 
 load_deployment_config
