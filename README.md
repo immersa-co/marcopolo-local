@@ -38,15 +38,4 @@ PGP_PASSPHRASE_FILE=$HOME/.marcopolo-poc/passphrase.txt
 ./scripts/port-forward.sh
 ```
 
-## Operations
-
-```bash
-./scripts/status.sh
-./scripts/logs.sh marcopolo
-./scripts/logs.sh mproxy
-./scripts/logs.sh otel-lgtm
-./scripts/test-executor-network.sh host.example.com 443
-./scripts/teardown.sh
-```
-
 Keep the key, passphrase, and token outside the repository. Do not edit `config/release.env`.
