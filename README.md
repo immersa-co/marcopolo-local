@@ -1,6 +1,6 @@
 # Marcopolo local POC
 
-Apple Silicon deployment on Colima Kubernetes. Open Marcopolo at http://localhost:8000.
+Apple Silicon deployment on Colima Kubernetes. Open Marcopolo at http://localhost:8000 and Grafana at http://localhost:3000.
 
 ## Requirements
 
@@ -44,6 +44,7 @@ PGP_PASSPHRASE_FILE=$HOME/.marcopolo-poc/passphrase.txt
 ./scripts/status.sh
 ./scripts/logs.sh marcopolo
 ./scripts/logs.sh mproxy
+./scripts/logs.sh otel-lgtm
 ./scripts/test-executor-network.sh host.example.com 443
 ./scripts/teardown.sh
 ```

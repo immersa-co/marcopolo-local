@@ -51,12 +51,18 @@ load_deployment_config() {
     : "${MARCOPOLO_IMAGE:?MARCOPOLO_IMAGE must be set in ${RELEASE_CONFIG}}"
     : "${MPROXY_IMAGE:?MPROXY_IMAGE must be set in ${RELEASE_CONFIG}}"
     : "${EXECUTOR_IMAGE:?EXECUTOR_IMAGE must be set in ${RELEASE_CONFIG}}"
+    : "${OTEL_LGTM_IMAGE:?OTEL_LGTM_IMAGE must be set in ${RELEASE_CONFIG}}"
+    : "${ALLOY_IMAGE:?ALLOY_IMAGE must be set in ${RELEASE_CONFIG}}"
     : "${MARCOPOLO_ARCHIVE_URL:?MARCOPOLO_ARCHIVE_URL must be set in ${RELEASE_CONFIG}}"
     : "${MARCOPOLO_ARCHIVE_SHA256:?MARCOPOLO_ARCHIVE_SHA256 must be set in ${RELEASE_CONFIG}}"
     : "${MPROXY_ARCHIVE_URL:?MPROXY_ARCHIVE_URL must be set in ${RELEASE_CONFIG}}"
     : "${MPROXY_ARCHIVE_SHA256:?MPROXY_ARCHIVE_SHA256 must be set in ${RELEASE_CONFIG}}"
     : "${EXECUTOR_ARCHIVE_URL:?EXECUTOR_ARCHIVE_URL must be set in ${RELEASE_CONFIG}}"
     : "${EXECUTOR_ARCHIVE_SHA256:?EXECUTOR_ARCHIVE_SHA256 must be set in ${RELEASE_CONFIG}}"
+    : "${OTEL_LGTM_ARCHIVE_URL:?OTEL_LGTM_ARCHIVE_URL must be set in ${RELEASE_CONFIG}}"
+    : "${OTEL_LGTM_ARCHIVE_SHA256:?OTEL_LGTM_ARCHIVE_SHA256 must be set in ${RELEASE_CONFIG}}"
+    : "${ALLOY_ARCHIVE_URL:?ALLOY_ARCHIVE_URL must be set in ${RELEASE_CONFIG}}"
+    : "${ALLOY_ARCHIVE_SHA256:?ALLOY_ARCHIVE_SHA256 must be set in ${RELEASE_CONFIG}}"
     : "${PGP_PRIVATE_KEY_FILE:?PGP_PRIVATE_KEY_FILE must be set in ${CUSTOMER_CONFIG}}"
 }
 
@@ -160,5 +166,7 @@ replace_template_values() {
         -e "s|__MARCOPOLO_IMAGE__|${MARCOPOLO_IMAGE//&/\\&}|g" \
         -e "s|__MPROXY_IMAGE__|${MPROXY_IMAGE//&/\\&}|g" \
         -e "s|__EXECUTOR_IMAGE__|${EXECUTOR_IMAGE//&/\\&}|g" \
+        -e "s|__OTEL_LGTM_IMAGE__|${OTEL_LGTM_IMAGE//&/\\&}|g" \
+        -e "s|__ALLOY_IMAGE__|${ALLOY_IMAGE//&/\\&}|g" \
         "$template"
 }

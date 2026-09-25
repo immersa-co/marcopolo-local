@@ -31,7 +31,9 @@ fi
 for image_spec in \
     "MARCOPOLO_IMAGE:${MARCOPOLO_IMAGE}" \
     "MPROXY_IMAGE:${MPROXY_IMAGE}" \
-    "EXECUTOR_IMAGE:${EXECUTOR_IMAGE}"; do
+    "EXECUTOR_IMAGE:${EXECUTOR_IMAGE}" \
+    "OTEL_LGTM_IMAGE:${OTEL_LGTM_IMAGE}" \
+    "ALLOY_IMAGE:${ALLOY_IMAGE}"; do
     image_name="${image_spec%%:*}"
     image_ref="${image_spec#*:}"
     if ! require_local_image "$image_name" "$image_ref"; then
@@ -42,7 +44,9 @@ done
 for asset_spec in \
     "MARCOPOLO_ARCHIVE:${MARCOPOLO_ARCHIVE_URL}:${MARCOPOLO_ARCHIVE_SHA256}" \
     "MPROXY_ARCHIVE:${MPROXY_ARCHIVE_URL}:${MPROXY_ARCHIVE_SHA256}" \
-    "EXECUTOR_ARCHIVE:${EXECUTOR_ARCHIVE_URL}:${EXECUTOR_ARCHIVE_SHA256}"; do
+    "EXECUTOR_ARCHIVE:${EXECUTOR_ARCHIVE_URL}:${EXECUTOR_ARCHIVE_SHA256}" \
+    "OTEL_LGTM_ARCHIVE:${OTEL_LGTM_ARCHIVE_URL}:${OTEL_LGTM_ARCHIVE_SHA256}" \
+    "ALLOY_ARCHIVE:${ALLOY_ARCHIVE_URL}:${ALLOY_ARCHIVE_SHA256}"; do
     asset_name="${asset_spec%%:*}"
     asset_values="${asset_spec#*:}"
     asset_url="${asset_values%:*}"

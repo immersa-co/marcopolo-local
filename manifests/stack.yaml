@@ -144,6 +144,14 @@ spec:
               value: /home/admin
             - name: WEB_BASE_URL
               value: http://localhost:8000
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-lgtm:4318
+            - name: MIMIR_BASE_URL
+              value: http://otel-lgtm:9090
+            - name: MIMIR_QUERY_PATH_PREFIX
+              value: ""
+            - name: LOKI_BASE_URL
+              value: http://otel-lgtm:3100
             - name: K8S_SESSIONS_NAMESPACE
               value: __NAMESPACE__
             - name: K8S_SESSIONS_SERVICE_ACCOUNT
@@ -294,6 +302,8 @@ spec:
               value: /run/mproxy-byoc
             - name: WEB_BASE_URL
               value: http://localhost:8000
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-lgtm:4318
             - name: K8S_SESSIONS_NAMESPACE
               value: __NAMESPACE__
             - name: ROUTING_POLICY_PATH
@@ -351,3 +361,171 @@ spec:
     - name: http
       port: 8000
       targetPort: http
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: marcopolo-log-scraper
+  namespace: __NAMESPACE__
+data:
+  config.alloy: |
+    local.file_match "pods" {
+      path_targets = [{
+        __path__  = "/var/log/pods/__NAMESPACE___*/*/*.log",
+        namespace = "__NAMESPACE__",
+      }]
+    }
+
+    loki.source.file "pods" {
+      targets    = local.file_match.pods.targets
+      forward_to = [loki.process.pods.receiver]
+    }
+
+    loki.process "pods" {
+      stage.docker {}
+
+      stage.regex {
+        source     = "filename"
+        expression = "/var/log/pods/[^/]+/(?P<container>[^/]+)/[0-9]+\\.log"
+      }
+
+      stage.labels {
+        values = {
+          container = "",
+        }
+      }
+
+      forward_to = [loki.write.local.receiver]
+    }
+
+    loki.write "local" {
+      endpoint {
+        url = "http://otel-lgtm:3100/loki/api/v1/push"
+      }
+    }
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: marcopolo-log-scraper
+  namespace: __NAMESPACE__
+  labels:
+    app: marcopolo-log-scraper
+spec:
+  selector:
+    matchLabels:
+      app: marcopolo-log-scraper
+  template:
+    metadata:
+      labels:
+        app: marcopolo-log-scraper
+    spec:
+      securityContext:
+        runAsUser: 0
+      containers:
+        - name: alloy
+          image: __ALLOY_IMAGE__
+          imagePullPolicy: Never
+          args:
+            - run
+            - --server.http.listen-addr=0.0.0.0:12345
+            - --storage.path=/tmp/alloy
+            - /etc/alloy/config.alloy
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/alloy
+            - name: varlog
+              mountPath: /var/log
+              readOnly: true
+            - name: varlibdockercontainers
+              mountPath: /var/lib/docker/containers
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: marcopolo-log-scraper
+        - name: varlog
+          hostPath:
+            path: /var/log
+        - name: varlibdockercontainers
+          hostPath:
+            path: /var/lib/docker/containers
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-lgtm
+  namespace: __NAMESPACE__
+  labels:
+    app: otel-lgtm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-lgtm
+  template:
+    metadata:
+      labels:
+        app: otel-lgtm
+    spec:
+      containers:
+        - name: otel-lgtm
+          image: __OTEL_LGTM_IMAGE__
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 4318
+              name: otlp-http
+            - containerPort: 3000
+              name: grafana
+            - containerPort: 3100
+              name: loki
+            - containerPort: 9090
+              name: prometheus
+            - containerPort: 3200
+              name: tempo
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: grafana
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 30
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 750m
+              memory: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-lgtm
+  namespace: __NAMESPACE__
+spec:
+  selector:
+    app: otel-lgtm
+  ports:
+    - name: otlp-http
+      port: 4318
+      targetPort: otlp-http
+    - name: grafana
+      port: 3000
+      targetPort: grafana
+    - name: loki
+      port: 3100
+      targetPort: loki
+    - name: prometheus
+      port: 9090
+      targetPort: prometheus
+    - name: tempo
+      port: 3200
+      targetPort: tempo

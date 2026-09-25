@@ -36,6 +36,10 @@ kube create configmap "$sops_tools_configmap" \
 
 replace_template_values "${ROOT_DIR}/manifests/stack.yaml" | kube apply -f -
 
+note "Waiting for local observability..."
+kube rollout status deployment/otel-lgtm --namespace "$POC_NAMESPACE" --timeout=180s
+kube rollout status daemonset/marcopolo-log-scraper --namespace "$POC_NAMESPACE" --timeout=180s
+
 note "Waiting for Marcopolo and its proxy..."
 kube rollout status deployment/marcopolo --namespace "$POC_NAMESPACE" --timeout=180s
 kube rollout status deployment/mproxy --namespace "$POC_NAMESPACE" --timeout=180s

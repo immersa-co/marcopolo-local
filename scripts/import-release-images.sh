@@ -65,5 +65,7 @@ import_image() {
 import_image "marcopolo-api" "$MARCOPOLO_ARCHIVE_URL" "$MARCOPOLO_ARCHIVE_SHA256" "$MARCOPOLO_IMAGE"
 import_image "mproxy" "$MPROXY_ARCHIVE_URL" "$MPROXY_ARCHIVE_SHA256" "$MPROXY_IMAGE"
 import_image "marcopolo-user" "$EXECUTOR_ARCHIVE_URL" "$EXECUTOR_ARCHIVE_SHA256" "$EXECUTOR_IMAGE"
+import_image "otel-lgtm" "$OTEL_LGTM_ARCHIVE_URL" "$OTEL_LGTM_ARCHIVE_SHA256" "$OTEL_LGTM_IMAGE"
+import_image "alloy" "$ALLOY_ARCHIVE_URL" "$ALLOY_ARCHIVE_SHA256" "$ALLOY_IMAGE"
 
-note "Imported all Marcopolo release images into K3s."
+note "Imported Marcopolo and observability release images into K3s."

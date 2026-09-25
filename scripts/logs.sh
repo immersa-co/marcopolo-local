@@ -7,13 +7,13 @@ resolve_kubectl
 
 component="${1:-mproxy}"
 case "$component" in
-    marcopolo|mproxy|otel-lgtm)
+    marcopolo|mproxy|otel-lgtm|marcopolo-log-scraper)
         kube logs --namespace "$POC_NAMESPACE" --follow "deployment/${component}"
         ;;
     sessions)
         kube get pods --namespace "$POC_NAMESPACE" -l app=marcopolo-user
         ;;
     *)
-        fail "Usage: $0 [marcopolo|mproxy|otel-lgtm|sessions]"
+        fail "Usage: $0 [marcopolo|mproxy|otel-lgtm|marcopolo-log-scraper|sessions]"
         ;;
 esac

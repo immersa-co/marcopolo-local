@@ -5,4 +5,4 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
 load_deployment_config
 resolve_kubectl
 
-kube get pods,services,pvc --namespace "$POC_NAMESPACE"
+kube get pods,services,pvc,daemonsets --namespace "$POC_NAMESPACE"
