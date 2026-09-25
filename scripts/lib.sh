@@ -7,6 +7,7 @@ ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 CONFIG_DIR="${ROOT_DIR}/config"
 DEPLOYMENT_CONFIG="${DEPLOYMENT_CONFIG:-${CONFIG_DIR}/deployment.env}"
 SOPS_CONFIG_DIR="${SOPS_CONFIG_DIR:-${CONFIG_DIR}/sops}"
+readonly POC_NAMESPACE="marcopolo-local"
 
 fail() {
     printf 'ERROR: %s\n' "$*" >&2
@@ -29,7 +30,6 @@ load_deployment_config() {
     require_file "$DEPLOYMENT_CONFIG"
     # shellcheck disable=SC1090
     source "$DEPLOYMENT_CONFIG"
-    : "${POC_NAMESPACE:?POC_NAMESPACE must be set in ${DEPLOYMENT_CONFIG}}"
     : "${WEB_BASE_URL:?WEB_BASE_URL must be set in ${DEPLOYMENT_CONFIG}}"
     : "${POC_TENANT:=wellsfargo-com}"
     : "${MARCOPOLO_IMAGE:?MARCOPOLO_IMAGE must be set in ${DEPLOYMENT_CONFIG}}"
