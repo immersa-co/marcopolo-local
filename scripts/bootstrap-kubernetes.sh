@@ -3,7 +3,6 @@
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
 
 require_command colima
-ensure_kubectl
 resolve_kubectl
 
 if ! colima status --profile "$COLIMA_PROFILE" >/dev/null 2>&1; then

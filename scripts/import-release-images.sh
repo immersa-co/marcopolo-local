@@ -35,13 +35,6 @@ import_image() {
         return
     fi
 
-    if [[ "$url" == https://api.github.com/repos/immersa-co/marcopolo-local/releases/assets/[0-9]* ]]; then
-        github_release_token
-        curl_args+=(--header "Accept: application/octet-stream")
-        curl_args+=(--header "X-GitHub-Api-Version: 2022-11-28")
-        curl_args+=(--header "Authorization: Bearer ${GITHUB_RELEASE_TOKEN}")
-    fi
-
     note "Downloading ${name} from GitHub Release..."
     curl "${curl_args[@]}" --output "$archive_path" "$url"
     printf '%s  %s\n' "$checksum" "$archive_path" | shasum -a 256 -c -

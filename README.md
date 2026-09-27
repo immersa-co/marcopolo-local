@@ -37,5 +37,6 @@ PGP_PASSPHRASE_FILE=$HOME/.marcopolo-poc/passphrase.txt
 ./scripts/port-forward.sh
 ```
 
+Keep the key and passphrase outside the repository. Do not edit `config/release.env`.
 
 Next, open http://localhost:8000/app and sign in with your company email.
