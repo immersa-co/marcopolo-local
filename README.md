@@ -39,4 +39,4 @@ PGP_PASSPHRASE_FILE=$HOME/.marcopolo-poc/passphrase.txt
 
 Keep the key and passphrase outside the repository. Do not edit `config/release.env`.
 
-Next, open http://localhost:8000/app and sign in with your company email.
+Next, open http://localhost:8000/app. The local deployment creates a session automatically with Enterprise access; WorkOS sign-in is not used. To choose the local identity, set `LOCAL_AUTH_EMAIL=you@company.com` in `config/customer.env` before running `./scripts/deploy.sh`. If unset, it uses `developer@local.marcopolo`. This identity is asserted locally, so keep the port-forward bound to localhost.

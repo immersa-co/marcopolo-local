@@ -144,6 +144,16 @@ spec:
               value: /home/admin
             - name: WEB_BASE_URL
               value: http://localhost:8000
+            - name: LOCAL_AUTH_EMAIL
+              valueFrom:
+                configMapKeyRef:
+                  name: marcopolo-local-auth
+                  key: email
+            - name: SESSION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: marcopolo-local-session
+                  key: session-secret
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
               value: http://otel-lgtm:4318
             - name: MIMIR_BASE_URL
@@ -302,6 +312,16 @@ spec:
               value: /run/mproxy-byoc
             - name: WEB_BASE_URL
               value: http://localhost:8000
+            - name: LOCAL_AUTH_EMAIL
+              valueFrom:
+                configMapKeyRef:
+                  name: marcopolo-local-auth
+                  key: email
+            - name: SESSION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: marcopolo-local-session
+                  key: session-secret
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
               value: http://otel-lgtm:4318
             - name: K8S_SESSIONS_NAMESPACE
